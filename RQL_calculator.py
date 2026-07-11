@@ -5,17 +5,17 @@ import os
 import sys
 #streamlit run RQL_calculator.py
 #%%
-def get_mech_path(relative_path, local_absolute_path):
-    """
-    .exe 배포 환경과 내 로컬 PC 개발 환경 모두에서 안전하게 경로를 찾아주는 함수
-    """
-    # PyInstaller가 압축을 푸는 임시 폴더 경로(_MEIPASS)가 존재하는지 확인
-    if hasattr(sys, '_MEIPASS'):
-        # .exe 실행 중이라면 내부 가상 폴더 경로를 반환
-        return os.path.join(sys._MEIPASS, relative_path)
+# def get_mech_path(relative_path, local_absolute_path):
+#     """
+#     .exe 배포 환경과 내 로컬 PC 개발 환경 모두에서 안전하게 경로를 찾아주는 함수
+#     """
+#     # PyInstaller가 압축을 푸는 임시 폴더 경로(_MEIPASS)가 존재하는지 확인
+#     if hasattr(sys, '_MEIPASS'):
+#         # .exe 실행 중이라면 내부 가상 폴더 경로를 반환
+#         return os.path.join(sys._MEIPASS, relative_path)
     
-    # 내 컴퓨터에서 그냥 일반 파이썬으로 실행 중이라면 원래 쓰던 절대 경로 반환
-    return local_absolute_path
+#     # 내 컴퓨터에서 그냥 일반 파이썬으로 실행 중이라면 원래 쓰던 절대 경로 반환
+#     return local_absolute_path
 
 #%%
 # 웹 페이지 제목 및 레이아웃 설정
@@ -35,7 +35,8 @@ mech_database = {
                 """
     },
     "CRECK(2023C)": {
-        "path": get_mech_path("Mechanisms/CRECK(2023C)/CRECK(2023C).yaml)",r"D:\4. python code\Cantera\Mechanisms\CRECK(2023C)\CRECK(2023C).yaml"),
+        # "path": get_mech_path("Mechanisms/CRECK(2023C)/CRECK(2023C).yaml)",r"D:\4. python code\Cantera\Mechanisms\CRECK(2023C)\CRECK(2023C).yaml"),
+        "path": "CRECK(2023C).yaml",
         "desc": """
         - **C1_C3** (species: 159, reactions: 2459)
         - Temperature: **High**
@@ -44,7 +45,8 @@ mech_database = {
     },    
     
     "CRECK(2023-NH3-H2)": {
-        "path": get_mech_path("Mechanisms/CRECK(2023-NH3)/CRECK(2023-NH3-H2.yaml)", r"D:\4. python code\Cantera\Mechanisms\CRECK(2023-NH3)\CRECK(2023-NH3-H2).yaml"),
+        # "path": get_mech_path("Mechanisms/CRECK(2023-NH3)/CRECK(2023-NH3-H2.yaml)", r"D:\4. python code\Cantera\Mechanisms\CRECK(2023-NH3)\CRECK(2023-NH3-H2).yaml"),
+        "path": "CRECK(2023-NH3-H2).yaml",
         "desc": """
         - **NH3-H2** (species: 34, reactions: 256)
         - Pressure: ****
@@ -53,7 +55,8 @@ mech_database = {
     },
 
     "Okafor(2018)": {
-        "path": get_mech_path("Mechanisms/Okarfor (2018)/Okarfor(2018).yaml", r"D:\4. python code\Cantera\Mechanisms\Okarfor (2018)\Okarfor(2018).yaml"),
+        # "path": get_mech_path("Mechanisms/Okarfor (2018)/Okarfor(2018).yaml", r"D:\4. python code\Cantera\Mechanisms\Okarfor (2018)\Okarfor(2018).yaml"),
+        "path": "Okarfor(2018).yaml",
         "desc": """
         - **NH3-CH4** (species: 59, reactions: 356)
         - Pressure: **Ambient**
@@ -61,7 +64,8 @@ mech_database = {
         """
     },
     "Mei(2021)":{
-        "path": get_mech_path("Mechanisms/Mei (2021)/Mei_mechanism.yaml", r"D:\4. python code\Cantera\Mechanisms\Mei (2021)\Mei_mechanism.yaml"),
+        # "path": get_mech_path("Mechanisms/Mei (2021)/Mei_mechanism.yaml", r"D:\4. python code\Cantera\Mechanisms\Mei (2021)\Mei_mechanism.yaml"),
+        "path": "Mei_mechanism.yaml",
         "desc": """
         - **NH3-H2-N2 (cracking)** (species: 40, reactions: 257)
         - Pressure: **High(~10 bar)**
@@ -70,7 +74,8 @@ mech_database = {
     },
 
     "Stagni(2023)": {
-        "path": get_mech_path("Mechanisms/Stagni(2023)/Stagni(2023).yaml", r"D:\4. python code\Cantera\Mechanisms\Stagni(2023)\Stagni(2023).yaml"),
+        # "path": get_mech_path("Mechanisms/Stagni(2023)/Stagni(2023).yaml", r"D:\4. python code\Cantera\Mechanisms\Stagni(2023)\Stagni(2023).yaml"),
+        "path": "Stagni(2023).yaml",
         "desc": """
         - **NH3-H2** (species: 29, reactions: 203)
         - Temperature: **High**
@@ -79,7 +84,8 @@ mech_database = {
     },
 
     "Nakamura(2017)": {
-        "path": get_mech_path("Mechanisms/Nakamura(2017)/Nakamura(2017).yaml", r"D:\4. python code\Cantera\Mechanisms\Nakamura(2017)\Nakamura(2017).yaml"),
+        # "path": get_mech_path("Mechanisms/Nakamura(2017)/Nakamura(2017).yaml", r"D:\4. python code\Cantera\Mechanisms\Nakamura(2017)\Nakamura(2017).yaml"),
+        "path": "Nakamura(2017).yaml",
         "desc": """
         - **NH3** (species: 38, reactions: 232)
         - Pressure: **Ambient**
@@ -89,7 +95,8 @@ mech_database = {
     },
 
     "Zhang(2021)": {
-        "path": get_mech_path("Mechanisms/Zhang(2021)/Zhang(2021).yaml", r"D:\4. python code\Cantera\Mechanisms\Zhang(2021)\Zhang(2021).yaml"),
+        # "path": get_mech_path("Mechanisms/Zhang(2021)/Zhang(2021).yaml", r"D:\4. python code\Cantera\Mechanisms\Zhang(2021)\Zhang(2021).yaml"),
+        "path": "Zhang(2021).yaml",
         "desc": """
         - **NH3** (species: 38, reactions: 263)
         - Pressure: **Ambient**
