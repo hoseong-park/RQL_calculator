@@ -304,16 +304,16 @@ if st.button("Calculation", type="primary"):
             st.error(f"계산 중 에러가 발생했습니다. 입력 조건을 확인하세요.\n에러 내용: {e}")
 
 
-if __name__ == '__main__':
-    import os
-    import sys
-    import subprocess
-    import webbrowser
-    from streamlit.web import cli as stcli
+# if __name__ == '__main__':
+#     import os
+#     import sys
+#     import subprocess
+#     import webbrowser
+#     from streamlit.web import cli as stcli
 
-    # 1. 앱이 실행되면 자동으로 크롬 브라우저로 대시보드 주소 열기
-    webbrowser.open("http://localhost:8501")
+#     # 1. 앱이 실행되면 자동으로 크롬 브라우저로 대시보드 주소 열기
+#     webbrowser.open("http://localhost:8501")
 
-    # 2. PyInstaller 내부 환경에서 Streamlit을 강제로 가동하기
-    sys.argv = ["streamlit", "run", __file__, "--server.port=8501", "--server.headless=true"]
-    sys.exit(stcli.main())
+#     # 2. PyInstaller 내부 환경에서 Streamlit을 강제로 가동하기
+#     sys.argv = ["streamlit", "run", __file__, "--server.port=8501", "--server.headless=true"]
+#     sys.exit(stcli.main())
