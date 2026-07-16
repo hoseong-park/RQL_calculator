@@ -10,12 +10,98 @@ import matplotlib.pyplot as plt
 #%%
 # 웹 페이지 제목 및 레이아웃 설정
 st.set_page_config(page_title="RQL Combustor Simulator", layout="wide")
+
 header_col1, header_col2 = st.columns([0.4, 0.6])
+
 with header_col1:
     st.title("RQL Combustor simulator")
     st.write("Adjust the variables and click the [Calculation] button.")
 with header_col2:
-    st.image("combustor2.png", caption="RQL Combustor Schematic Diagram", width=500)
+    st.image(r"D:\4. python code\Cantera\combustor2.png", caption="RQL Combustor Schematic Diagram", width=500)
+
+# 1. 사이드바 - 입력 변수 세팅 구역
+st.sidebar.header("Variables")
+
+mech_database = {
+    "GRI 3.0": {
+        "path": "gri30.yaml",
+        "desc": """
+        - **C** (species: 53, reactions: 325)
+                """
+    },
+    "CRECK(2023C)": {
+        # "path": get_mech_path("Mechanisms/CRECK(2023C)/CRECK(2023C).yaml)",r"D:\4. python code\Cantera\Mechanisms\CRECK(2023C)\CRECK(2023C).yaml"),
+        "path": "CRECK(2023C).yaml",
+        "desc": """
+        - **C1_C3** (species: 159, reactions: 2459)
+        - Temperature: **High**
+        - **NOx**
+        """
+    },    
+    
+    "CRECK(2023-NH3-H2)": {
+        # "path": get_mech_path("Mechanisms/CRECK(2023-NH3)/CRECK(2023-NH3-H2.yaml)", r"D:\4. python code\Cantera\Mechanisms\CRECK(2023-NH3)\CRECK(2023-NH3-H2).yaml"),
+        "path": "CRECK(2023-NH3-H2).yaml",
+        "desc": """
+        - **NH3-H2** (species: 34, reactions: 256)
+        - Pressure: ****
+        - ****
+        """
+    },
+
+    "Okafor(2018)": {
+        # "path": get_mech_path("Mechanisms/Okarfor (2018)/Okarfor(2018).yaml", r"D:\4. python code\Cantera\Mechanisms\Okarfor (2018)\Okarfor(2018).yaml"),
+        "path": "Okarfor(2018).yaml",
+        "desc": """
+        - **NH3-CH4** (species: 59, reactions: 356)
+        - Pressure: **Ambient**
+        - Equivalence ratio: 0.8~1.2
+        """
+    },
+    "Mei(2021)":{
+        # "path": get_mech_path("Mechanisms/Mei (2021)/Mei_mechanism.yaml", r"D:\4. python code\Cantera\Mechanisms\Mei (2021)\Mei_mechanism.yaml"),
+        "path": "Mei_mechanism.yaml",
+        "desc": """
+        - **NH3-H2-N2 (cracking)** (species: 40, reactions: 257)
+        - Pressure: **High(~10 bar)**
+        - Equivalence ratio: 0.7~1.4
+        """
+    },
+
+    "Stagni(2023)": {
+        # "path": get_mech_path("Mechanisms/Stagni(2023)/Stagni(2023).yaml", r"D:\4. python code\Cantera\Mechanisms\Stagni(2023)\Stagni(2023).yaml"),
+        "path": "Stagni(2023).yaml",
+        "desc": """
+        - **NH3-H2** (species: 29, reactions: 203)
+        - Temperature: **High**
+        - ****
+        """
+    },
+
+    "Nakamura(2017)": {
+        # "path": get_mech_path("Mechanisms/Nakamura(2017)/Nakamura(2017).yaml", r"D:\4. python code\Cantera\Mechanisms\Nakamura(2017)\Nakamura(2017).yaml"),
+        "path": "Nakamura(2017).yaml",
+        "desc": """
+        - **NH3** (species: 38, reactions: 232)
+        - Pressure: **Ambient**
+        - Temperature: **low**
+        - Equivalence ratio: 0.8~1.2
+        """
+    },
+
+    "Zhang(2021)": {
+        # "path": get_mech_path("Mechanisms/Zhang(2021)/Zhang(2021).yaml", r"D:\4. python code\Cantera\Mechanisms\Zhang(2021)\Zhang(2021).yaml"),
+        "path": "Zhang(2021).yaml",
+        "desc": """
+        - **NH3** (species: 38, reactions: 263)
+        - Pressure: **Ambient**
+        - Temperature: **low~high**
+        - Equivalence ratio: 0.25~1.00
+        """
+    }
+
+    }
+
 
 # 1. 드롭다운 선택창
 selected_mech_name = st.sidebar.selectbox("Mechanism", list(mech_database.keys()))
