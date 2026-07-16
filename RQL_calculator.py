@@ -555,7 +555,7 @@ if st.button("Calculation", type="primary"):
                     )
                     st.plotly_chart(fig, use_container_width=True)
 
-                with st.expander("Residence data", expanded=False):
+                with st.expander("Residence time", expanded=False):
                     fig = go.Figure()
                     fig.add_trace(
                         go.Scatter(
