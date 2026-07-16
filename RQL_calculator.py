@@ -151,10 +151,9 @@ psr2_vol_raw = st.sidebar.text_input("(Volume) C-D ($m^3$)", value="0.001")
 # psr2_vol_raw_A = st.sidebar.text_input("(s-auto_initial) Reaction volume ($m^3$)", value="-", disabled=True)
 
 # psr2_vol_raw = st.sidebar.text_input("(s) Reaction volume ($m^3$)", value="0.05")
+pfr1_area_raw = st.sidebar.text_input("(Area) Primary - Combustor cross secion area ($m^2$)", value="0.0314")
 pfr2_area_raw = st.sidebar.text_input("(Area) secondary - Combustor cross secion area ($m^2$)", value="0.0314")
 
-
-pfr1_area_raw = st.sidebar.text_input("(Area) Primary - Combustor cross secion area ($m^2$)", value="0.0314")
 pfr1_len_raw = st.sidebar.text_input("(Length) A-C ($m$)", value="0.5")
 pfr2_len_raw = st.sidebar.text_input("(Length) C-E ($m$)", value="0.7")
 
