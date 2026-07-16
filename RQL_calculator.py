@@ -3,26 +3,19 @@ import cantera as ct
 import numpy as np
 import os
 import sys
-#streamlit run RQL_calculator.py
-#%%
-# def get_mech_path(relative_path, local_absolute_path):
-#     """
-#     .exe 배포 환경과 내 로컬 PC 개발 환경 모두에서 안전하게 경로를 찾아주는 함수
-#     """
-#     # PyInstaller가 압축을 푸는 임시 폴더 경로(_MEIPASS)가 존재하는지 확인
-#     if hasattr(sys, '_MEIPASS'):
-#         # .exe 실행 중이라면 내부 가상 폴더 경로를 반환
-#         return os.path.join(sys._MEIPASS, relative_path)
-    
-#     # 내 컴퓨터에서 그냥 일반 파이썬으로 실행 중이라면 원래 쓰던 절대 경로 반환
-#     return local_absolute_path
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import matplotlib.pyplot as plt
 
 #%%
 # 웹 페이지 제목 및 레이아웃 설정
 st.set_page_config(page_title="RQL Combustor Simulator", layout="wide")
-# 🔥 🛠️ 🌡️ 🧪 ⚖️ 📐 🚀 📋 
-st.title("RQL Combustor simulator")
-st.write("변수를 조정하고 하단의 **[Calculation]** 버튼을 누르세요.")
+header_col1, header_col2 = st.columns([0.4, 0.6])
+with header_col1:
+    st.title("RQL Combustor simulator")
+    st.write("Adjust the variables and click the [Calculation] button.")
+with header_col2:
+    st.image("combustor2.png", caption="RQL Combustor Schematic Diagram", width=500)
 
 # 1. 사이드바 - 입력 변수 세팅 구역
 st.sidebar.header("Variables")
@@ -138,15 +131,32 @@ mdot_sec_air_raw = st.sidebar.text_input("Secondary air (kg/s)", value="3.9618")
 
 # 1-4. 반응기 형상 및 내부 온도 조건
 st.sidebar.subheader("Reactor setting")
-psr1_init_T_raw = st.sidebar.text_input("(p) Reaction temperature (K)", value="2000")
-# [수정] 부피와 단면적을 text_input으로 변경
-psr1_vol_raw = st.sidebar.text_input("(p) Raction volume ($m^3$)", value="0.1")
-pfr1_area_raw = st.sidebar.text_input("(p) Combustor cross secion area ($m^2$)", value="0.0314")
-pfr1_len_raw = st.sidebar.text_input("dump-secondary (m)", value="0.5")
+psr1_init_T_raw = st.sidebar.text_input("(Temperature) A-B, primary zone ($K$)", value="2000")
 
-psr2_vol_raw = st.sidebar.text_input("(s) Reaction volume ($m^3$)", value="0.05")
-pfr2_area_raw = st.sidebar.text_input("(s) Combustor cross secion area ($m^2$)", value="0.0314")
-pfr2_len_raw = st.sidebar.text_input("secondary-emission probe (m)", value="0.5")
+auto_vol = st.sidebar.checkbox("Auto primary volume (Find min vol)", value=False)
+if auto_vol:
+    psr1_vol_raw = st.sidebar.text_input("(Volume) A-B ($m^3$)", value="-", disabled=True)
+    psr1_vol_raw_A = st.sidebar.text_input("(auto_initial) Reaction volume ($m^3$)", value="0.001")
+else:
+    psr1_vol_raw = st.sidebar.text_input("(Volume) A-B ($m^3$)", value="0.001")
+    psr1_vol_raw_A = st.sidebar.text_input("(auto_initial) Reaction volume ($m^3$)", value="-", disabled=True)
+
+
+# auto_vol2 = st.sidebar.checkbox("Auto secondary volume (Find min vol)", value=False)
+# if auto_vol2:
+#     psr2_vol_raw = st.sidebar.text_input("(s) Reaction volume ($m^3$)", value="-", disabled=True)
+#     psr2_vol_raw_A = st.sidebar.text_input("(s-auto_initial) Reaction volume ($m^3$)", value="0.05")
+# else:
+psr2_vol_raw = st.sidebar.text_input("(Volume) C-D ($m^3$)", value="0.001")
+# psr2_vol_raw_A = st.sidebar.text_input("(s-auto_initial) Reaction volume ($m^3$)", value="-", disabled=True)
+
+# psr2_vol_raw = st.sidebar.text_input("(s) Reaction volume ($m^3$)", value="0.05")
+pfr2_area_raw = st.sidebar.text_input("(Area) secondary - Combustor cross secion area ($m^2$)", value="0.0314")
+
+
+pfr1_area_raw = st.sidebar.text_input("(Area) Primary - Combustor cross secion area ($m^2$)", value="0.0314")
+pfr1_len_raw = st.sidebar.text_input("(Length) A-C ($m$)", value="0.5")
+pfr2_len_raw = st.sidebar.text_input("(Length) C-E ($m$)", value="0.7")
 
 # %% 2. 메인 화면 - 계산 버튼 및 결과 출력 구역
 if st.button("Calculation", type="primary"):
@@ -160,11 +170,20 @@ if st.button("Calculation", type="primary"):
     mdot_sec_air = float(mdot_sec_air_raw)
 
     psr1_init_T = float(psr1_init_T_raw)
-    psr1_vol = float(psr1_vol_raw)
+    if auto_vol:
+        psr1_vol_initial = float(psr1_vol_raw_A)
+    else:
+        psr1_vol = float(psr1_vol_raw)
+
     pfr1_area = float(pfr1_area_raw)
     pfr1_len = float(pfr1_len_raw)
     
+    # psr2_vol = float(psr2_vol_raw)
+    # if auto_vol2:
+    #     psr2_vol_initial = float(psr2_vol_raw_A)
+    # else:
     psr2_vol = float(psr2_vol_raw)
+
     pfr2_area = float(pfr2_area_raw)
     pfr2_len = float(pfr2_len_raw)
     with st.spinner("Running Cantera Solver ..."):
@@ -195,21 +214,66 @@ if st.button("Calculation", type="primary"):
             gas.TPX = T_air, P, air_species
             air_inlet = ct.Reservoir(gas, clone=False)
             outlet_1 = ct.Reservoir(gas, clone=False)
+
+            if auto_vol:
+                # 🛠️ 자동 볼륨 탐색 알고리즘
+                current_vol = psr1_vol_initial 
+                vol_step = 0.0001     
+                max_iter = 1000        
+                iter_cnt = 0
+                
+                while iter_cnt < max_iter:
+                    gas.TPX = psr1_init_T, P, air_species
+                    psr1 = ct.IdealGasReactor(gas, clone=False)
+                    psr1.volume = current_vol
+                    
+                    mfc_f = ct.MassFlowController(fuel_inlet, psr1, mdot=mdot_fuel)
+                    mfc_a = ct.MassFlowController(air_inlet, psr1, mdot=mdot_air)
+                    valve_1 = ct.Valve(psr1, outlet_1, K=1.0)
+                    
+                    sim_psr1 = ct.ReactorNet([psr1])
+                    sim_psr1.advance_to_steady_state()
+                    
+                    # 온도가 1000K를 넘으면 루프 탈출
+                    if psr1.phase.T >= 1000.0:
+                        psr1.volume = current_vol
+                        break
+                    current_vol += vol_step
+                    iter_cnt += 1
+                else:
+                    raise Exception("PSR1 자동 부피 설정 실패: 최대 반복 횟수 도달")
+            else:
+                gas.TPX = psr1_init_T, P, air_species
+                psr1 = ct.IdealGasReactor(gas, clone=False)
+                psr1.volume = psr1_vol
             
-            gas.TPX = psr1_init_T, P, air_species
-            psr1 = ct.IdealGasReactor(gas, clone=False)
-            psr1.volume = psr1_vol
-            
-            mfc_f = ct.MassFlowController(fuel_inlet, psr1, mdot=mdot_fuel)
-            mfc_a = ct.MassFlowController(air_inlet, psr1, mdot=mdot_air)
-            valve_1 = ct.Valve(psr1, outlet_1, K=1.0)
-            
-            sim_psr1 = ct.ReactorNet([psr1])
-            sim_psr1.advance_to_steady_state()
-            
+                mfc_f = ct.MassFlowController(fuel_inlet, psr1, mdot=mdot_fuel)
+                mfc_a = ct.MassFlowController(air_inlet, psr1, mdot=mdot_air)
+                valve_1 = ct.Valve(psr1, outlet_1, K=1.0)
+                
+                sim_psr1 = ct.ReactorNet([psr1])
+                sim_psr1.advance_to_steady_state()
+
             mdot_total_1 = mdot_fuel + mdot_air
             tau_psr1 = (psr1.phase.density * psr1.volume) / mdot_total_1
+            length_psr1 = psr1.volume / pfr1_area
             
+            x_length = []
+            x_temperature = []
+            x_NOx = []
+            x_NH3 = []
+
+            x_length.append(length_psr1)
+            x_temperature.append(psr1.phase.T)
+            idx_NO = gas.species_index('NO')
+            idx_NO2 = gas.species_index('NO2')
+            idx_NH3 = gas.species_index('NH3')
+            idx_H2O = gas.species_index('H2O')
+            idx_O2 = gas.species_index('O2')
+
+            x_NOx.append((psr1.phase.X[idx_NO]+psr1.phase.X[idx_NO2])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])))
+            x_NH3.append((psr1.phase.X[idx_NH3])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])))
+
             # ----------------------------------------------------
             # [단계 2] PFR 1 계산 (길이 기준 보폭 루프)
             # ----------------------------------------------------
@@ -217,14 +281,27 @@ if st.button("Calculation", type="primary"):
             pfr1 = ct.IdealGasConstPressureReactor(gas, clone=False)
             sim_pfr1 = ct.ReactorNet([pfr1])
             
-            x_cur = 0.0
+            x_cur = length_psr1
             t_cum1 = 0.0
-            dx = 0.01
+            dx = 0.005
+            length_count = 1
+            KK = 1
+            if x_cur >= pfr1_len:
+                x_cur = 0
+                KK = 0
+
             while x_cur < pfr1_len:
                 v = mdot_total_1 / (pfr1.phase.density * pfr1_area)
                 t_cum1 += (dx / v)
                 sim_pfr1.advance(t_cum1)
                 x_cur += dx
+
+                x_length.append(x_cur)
+                x_temperature.append(pfr1.phase.T)
+                x_NOx.append((pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])))
+                x_NH3.append((pfr1.phase.X[idx_NH3])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])))
+
+                length_count=length_count+1
                 
             # ----------------------------------------------------
             # [단계 3] 2차 공기 단열 혼합 및 PSR 2 계산
@@ -244,9 +321,37 @@ if st.button("Calculation", type="primary"):
             psr2_inlet = ct.Reservoir(gas, clone=False)
             outlet_2 = ct.Reservoir(gas, clone=False)
             
+            # if auto_vol2:
+            #     # 🛠️ 자동 볼륨 탐색 알고리즘
+            #     current_vol2 = psr2_vol_initial 
+            #     vol_step = 0.0001     
+            #     max_iter = 1000        
+            #     iter_cnt = 0
+                
+            #     while iter_cnt < max_iter:
+            #         gas.TPX = psr1_init_T, P, air_species
+            #         psr2 = ct.IdealGasReactor(gas, clone=False)
+            #         psr2.volume = current_vol2
+                    
+            #         mfc_f = ct.MassFlowController(fuel_inlet, psr2, mdot=mdot_fuel)
+            #         mfc_a = ct.MassFlowController(air_inlet, psr2, mdot=mdot_air)
+            #         valve_2 = ct.Valve(psr2, outlet_2, K=1.0)
+                    
+            #         sim_psr2 = ct.ReactorNet([psr2])
+            #         sim_psr2.advance_to_steady_state()
+                    
+            #         # 온도가 1000K를 넘으면 루프 탈출
+            #         if psr2.phase.T >= 1000.0:
+            #             psr2.volume = current_vol2
+            #             break
+                    
+            #         current_vol2 += vol_step
+            #         iter_cnt += 1
+            #     else:
+            #         raise Exception("PSR1 자동 부피 설정 실패: 최대 반복 횟수 도달")
+            # else:
             psr2 = ct.IdealGasReactor(gas, clone=False)
             psr2.volume = psr2_vol
-            
             mfc_psr2 = ct.MassFlowController(psr2_inlet, psr2, mdot=mdot_total_2)
             valve_2 = ct.Valve(psr2, outlet_2, K=1.0)
             
@@ -254,7 +359,16 @@ if st.button("Calculation", type="primary"):
             sim_psr2.advance_to_steady_state()
             
             tau_psr2 = (psr2.phase.density * psr2.volume) / mdot_total_2
-            
+            length_psr2 = psr2.volume / pfr2_area
+            length_psr22 = length_psr2
+
+            x_length.append(x_cur + length_psr22)
+            x_temperature.append(psr2.phase.T)
+            x_NOx.append((psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])))
+            x_NH3.append((psr2.phase.X[idx_NH3])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])))
+
+            length_count = length_count + 1
+
             # ----------------------------------------------------
             # [단계 4] PFR 2 계산
             # ----------------------------------------------------
@@ -262,18 +376,35 @@ if st.button("Calculation", type="primary"):
             pfr2 = ct.IdealGasConstPressureReactor(gas, clone=False)
             sim_pfr2 = ct.ReactorNet([pfr2])
             
-            x_cur2 = 0.0
+            x_cur2 = x_cur+length_psr2
             t_cum2 = 0.0
-            while x_cur2 < pfr2_len:
+            if length_psr2 >= pfr2_len:
+                x_cur2 = 0
+                KK = 0
+            while length_psr2 < pfr2_len:
                 v2 = mdot_total_2 / (pfr2.phase.density * pfr2_area)
                 t_cum2 += (dx / v2)
                 sim_pfr2.advance(t_cum2)
                 x_cur2 += dx
+                length_psr2 += dx
+
+                x_length.append(x_cur2)
+                x_temperature.append(pfr2.phase.T)
+                x_NOx.append((pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])))
+                x_NH3.append((pfr2.phase.X[idx_NH3])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])))
+
+                # length_count=length_count+1
             
             # ----------------------------------------------------
             # 📊 결과 리포트 출력 구역
             # ----------------------------------------------------
-            st.success("Calculation compeleted")
+            if psr1.phase.T < 1000:
+                st.error(f"No reaction in primary zone. Please enter higher temperature or volume.")
+            elif KK == 0:
+                st.error(f"Please control combustor length.")
+            else:
+                st.success("Calculation compeleted")
+
             
             # 메트릭 카드로 중요 수치 대시보드화
             idx_NO = gas.species_index('NO')
@@ -285,35 +416,161 @@ if st.button("Calculation", type="primary"):
             col2.metric("Primary $\phi$", f"{phi1:.4f}")
             col3.metric("Total $\phi$", f"{phi2:.4f}")
             col4.metric("Residence time", f"{(tau_psr1+tau_psr2+t_cum1+t_cum2)*1e3:.2f} ms")
-            col5.metric("Exit NOx (NO+NO2)", f"{(pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2])*1e6:.2f} ppm")
-            col6.metric("Exit NH3 Slip", f"{pfr2.phase.X[idx_NH3]*1e6:.2f} ppm")
+            col5.metric("Exit NOx (NO+NO2)", f"{(pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.2f} ppmvd@15%O2")
+            col6.metric("Exit NH3 Slip", f"{pfr2.phase.X[idx_NH3]*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.2f} ppmvd@15%O2")
             
             # 표 형태로 상세 데이터 나열
             st.subheader("Data")
             data = {
-                "Session": ["Primary reaction", "Post flame zone1", "Secondary reaction", "Emissions probe"],
+                "Session": ["Primary reaction(A-B)", "Post flame zone1(B-C)", "Secondary reaction(C-D)", "Emissions probe(E)"],
                 "Temperature (K)": [f"{psr1.phase.T:.1f}", f"{pfr1.phase.T:.1f}", f"{psr2.phase.T:.1f}", f"{pfr2.phase.T:.1f}"],
+                "length (mm)": [f"(A-B) {length_psr1*1e3:.4f}", f"(A-C) {x_cur*1e3:.4f}", f"(A-D) {(x_cur+length_psr22)*1e3:.4f}", f"(A-E) {x_cur2*1e3:.4f}"],
                 "Residence time (ms)": [f"{tau_psr1*1e3:.2f}", f"{t_cum1*1e3:.2f}", f"{tau_psr2*1e3:.2f}", f"{t_cum2*1e3:.2f}"],
-                "NOx (ppm)": [f"{(psr1.phase.X[idx_NO]+psr1.phase.X[idx_NO2])*1e6:.1f}", f"{(pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6:.1f}", f"{(psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2])*1e6:.1f}", f"{(pfr2.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6:.1f}"],
-                "NH3 (ppm)": [f"{psr1.phase.X[idx_NH3]*1e6:.1f}", f"{pfr1.phase.X[idx_NH3]*1e6:.1f}", f"{psr2.phase.X[idx_NH3]*1e6:.1f}", f"{pfr2.phase.X[idx_NH3]*1e6:.1f}"],
+                "Volume (m^3)": [f"{psr1.volume:.4f}", "-", f"{psr2.volume:.4f}", "-"],                
+                "NOx (ppmvd@15%O2)": [f"{(psr1.phase.X[idx_NO]+psr1.phase.X[idx_NO2])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])):.1f}",
+                              f"{(pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])):.1f}", 
+                              f"{(psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])):.1f}", 
+                              f"{(pfr2.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.1f}"],
+                "NH3 (ppmvd@15%O2)": [f"{psr1.phase.X[idx_NH3]*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])):.1f}", 
+                              f"{pfr1.phase.X[idx_NH3]*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])):.1f}", 
+                              f"{psr2.phase.X[idx_NH3]*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])):.1f}", 
+                              f"{pfr2.phase.X[idx_NH3]*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.1f}"],
             }
+
+            
             # st.dataframe(data, use_container_width=True)
             st.dataframe(data, width='stretch')
+            # st.image(r"D:\4. python code\Cantera\combustor.png", caption="RQL Combustor Schematic Diagram", width=700)
+
             
+            if KK == 1:
+                # 1. 데이터를 확실하게 실수형(float) 리스트로 변환
+                plot_x = [float(x)*1000 for x in x_length]
+                T_plot_y = [float(y) for y in x_temperature]
+                NOx_plot_y = [float(y) for y in x_NOx]
+                NH3_plot_y = [float(y) for y in x_NH3]
+
+                linewidth = 1
+                fontsize_label = 8
+                fontsize_legend = 5
+                fontsize_tick = 5
+                grid_alpha = 0.6
+            
+
+                # 3. 그래프 피겨(Figure) 생성 및 그리기
+                fig, ax = plt.subplots(nrows = 1, ncols = 3, figsize=(800 / 100, 250 / 100,), dpi = 100)
+
+                ax[0].plot(plot_x, T_plot_y, color="royalblue", linewidth=linewidth, linestyle="-", label="Temperature (K)")                
+                ax[0].axvline(x=(x_cur+length_psr22)*1e3, color="firebrick", linestyle=":", linewidth=0.8, alpha=0.8)
+                # ax.set_title("Axial Temperature Profile along Combustor", fontsize=14, fontweight="bold", pad=15)
+                ax[0].set_xlabel("Combustor Length (mm)", fontsize=fontsize_label)
+                ax[0].set_ylabel("Temperature (K)", fontsize=fontsize_label)
+                ax[0].tick_params(axis='both', labelsize=fontsize_tick)
+                ax[0].grid(True, linestyle=":", alpha=grid_alpha)
+                ax[0].legend(loc="upper right", fontsize=fontsize_legend)
+                
+
+                ax[1].plot(plot_x, NOx_plot_y, color="k", linewidth=linewidth, linestyle="-", label="NOx")                
+                ax[1].axvline(x=(x_cur+length_psr22)*1e3, color="firebrick", linestyle=":", linewidth=0.8, alpha=0.8)
+                # ax.set_title("Axial Temperature Profile along Combustor", fontsize=14, fontweight="bold", pad=15)
+                ax[1].set_xlabel("Combustor Length (mm)", fontsize=fontsize_label)
+                # ax[1].set_ylabel("NOx (ppmvd)", fontsize=fontsize_label)
+                ax[1].tick_params(axis='both', labelsize=fontsize_tick)
+                ax[1].grid(True, linestyle=":", alpha=grid_alpha)
+                ax[1].legend(loc="upper right", fontsize=fontsize_legend)
+
+                ax[2].plot(plot_x, NH3_plot_y, color="c", linewidth=linewidth, linestyle="-", label="NH3")                
+                ax[2].axvline(x=(x_cur+length_psr22)*1e3, color="firebrick", linestyle=":", linewidth=0.8, alpha=0.8)
+                # ax.set_title("Axial Temperature Profile along Combustor", fontsize=14, fontweight="bold", pad=15)
+                ax[2].set_xlabel("Combustor Length (mm)", fontsize=fontsize_label)
+                # ax[2].set_ylabel("NH3 (ppmvd)", fontsize=fontsize_label)
+                ax[2].tick_params(axis='both', labelsize=fontsize_tick)
+                ax[2].grid(True, linestyle=":", alpha=grid_alpha)
+                ax[2].legend(loc="upper right", fontsize=fontsize_legend)
+
+                # 4. Streamlit 전용 출력 함수 사용하여 웹에 띄우기
+                st.pyplot(fig, use_container_width=False)
+                
+                with st.expander("Temperature data", expanded=False):
+                    fig = go.Figure()
+                    fig.add_trace(
+                        go.Scatter(
+                            x=plot_x,  # 변환된 데이터 전달
+                            y=T_plot_y,  # 변환된 데이터 전달
+                            name="Temperature (K)",
+                            line=dict(color="royalblue", width=3, dash="dash")
+                        )
+                    )
+                    fig.update_layout(
+                        title_text="<b>Axial Temperature Profile along Combustor</b>",
+                        hovermode="x unified",
+                        xaxis_title="<b>Combustor Length (m)</b>",
+                        yaxis_title="<b>Temperature (K)</b>"
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+                with st.expander("NOx data", expanded=False):
+                    fig = go.Figure()
+                    fig.add_trace(
+                        go.Scatter(
+                            x=plot_x,  # 변환된 데이터 전달
+                            y=NOx_plot_y,  # 변환된 데이터 전달
+                            name="NOx (ppmvd@15%O2)",
+                            line=dict(color="royalblue", width=3, dash="dash")
+                        )
+                    )
+                    fig.update_layout(
+                        title_text="<b>Axial NOx Profile along Combustor</b>",
+                        hovermode="x unified",
+                        xaxis_title="<b>Combustor Length (m)</b>",
+                        yaxis_title="<b>NOx (ppmvd@15%O2)</b>"
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+                with st.expander("NH3 data", expanded=False):
+                    fig = go.Figure()
+                    fig.add_trace(
+                        go.Scatter(
+                            x=plot_x,  # 변환된 데이터 전달
+                            y=NH3_plot_y,  # 변환된 데이터 전달
+                            name="NH3 (ppmvd@15%O2)",
+                            line=dict(color="royalblue", width=3, dash="dash")
+                        )
+                    )
+                    fig.update_layout(
+                        title_text="<b>Axial NH3 Profile along Combustor</b>",
+                        hovermode="x unified",
+                        xaxis_title="<b>Combustor Length (m)</b>",
+                        yaxis_title="<b>NH3 (ppmvd@15%O2)</b>"
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+
+            
+
+            # if KK == 1:
+            #     # 🌟 데이터 타입을 강제로 float로 변환하여 안전성 확보
+            #     plot_x = [float(x) for x in x_length]
+            #     plot_y = [float(y) for y in x_temperature]
+
+            #     fig = go.Figure()
+            #     fig.add_trace(
+            #         go.Scatter(
+            #             x=plot_x,  # 변환된 데이터 전달
+            #             y=plot_y,  # 변환된 데이터 전달
+            #             name="Temperature (K)",
+            #             line=dict(color="royalblue", width=3, dash="dash")
+            #         )
+            #     )
+            #     fig.update_layout(
+            #         title_text="<b>Axial Temperature Profile along Combustor</b>",
+            #         hovermode="x unified",
+            #         xaxis_title="<b>Combustor Length (m)</b>",
+            #         yaxis_title="<b>Temperature (K)</b>"
+            #     )
+                
+            #     st.plotly_chart(fig, use_container_width=True)
+
+
         except Exception as e:
             st.error(f"계산 중 에러가 발생했습니다. 입력 조건을 확인하세요.\n에러 내용: {e}")
-
-
-# if __name__ == '__main__':
-#     import os
-#     import sys
-#     import subprocess
-#     import webbrowser
-#     from streamlit.web import cli as stcli
-
-#     # 1. 앱이 실행되면 자동으로 크롬 브라우저로 대시보드 주소 열기
-#     webbrowser.open("http://localhost:8501")
-
-#     # 2. PyInstaller 내부 환경에서 Streamlit을 강제로 가동하기
-#     sys.argv = ["streamlit", "run", __file__, "--server.port=8501", "--server.headless=true"]
-#     sys.exit(stcli.main())
