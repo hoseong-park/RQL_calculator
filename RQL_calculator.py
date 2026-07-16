@@ -15,7 +15,7 @@ with header_col1:
     st.title("RQL Combustor simulator")
     st.write("Adjust the variables and click the [Calculation] button.")
 with header_col2:
-    st.image(r"D:\4. python code\Cantera\combustor2.png", caption="RQL Combustor Schematic Diagram", width=500)
+    st.image("combustor2.png", caption="RQL Combustor Schematic Diagram", width=500)
 
 # 1. 사이드바 - 입력 변수 세팅 구역
 st.sidebar.header("Variables")
