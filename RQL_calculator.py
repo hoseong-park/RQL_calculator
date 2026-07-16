@@ -17,89 +17,6 @@ with header_col1:
 with header_col2:
     st.image("combustor2.png", caption="RQL Combustor Schematic Diagram", width=500)
 
-# 1. 사이드바 - 입력 변수 세팅 구역
-st.sidebar.header("Variables")
-
-mech_database = {
-    "GRI 3.0": {
-        "path": "gri30.yaml",
-        "desc": """
-        - **C** (species: 53, reactions: 325)
-                """
-    },
-    "CRECK(2023C)": {
-        # "path": get_mech_path("Mechanisms/CRECK(2023C)/CRECK(2023C).yaml)",r"D:\4. python code\Cantera\Mechanisms\CRECK(2023C)\CRECK(2023C).yaml"),
-        "path": "CRECK(2023C).yaml",
-        "desc": """
-        - **C1_C3** (species: 159, reactions: 2459)
-        - Temperature: **High**
-        - **NOx**
-        """
-    },    
-    
-    "CRECK(2023-NH3-H2)": {
-        # "path": get_mech_path("Mechanisms/CRECK(2023-NH3)/CRECK(2023-NH3-H2.yaml)", r"D:\4. python code\Cantera\Mechanisms\CRECK(2023-NH3)\CRECK(2023-NH3-H2).yaml"),
-        "path": "CRECK(2023-NH3-H2).yaml",
-        "desc": """
-        - **NH3-H2** (species: 34, reactions: 256)
-        - Pressure: ****
-        - ****
-        """
-    },
-
-    "Okafor(2018)": {
-        # "path": get_mech_path("Mechanisms/Okarfor (2018)/Okarfor(2018).yaml", r"D:\4. python code\Cantera\Mechanisms\Okarfor (2018)\Okarfor(2018).yaml"),
-        "path": "Okarfor(2018).yaml",
-        "desc": """
-        - **NH3-CH4** (species: 59, reactions: 356)
-        - Pressure: **Ambient**
-        - Equivalence ratio: 0.8~1.2
-        """
-    },
-    "Mei(2021)":{
-        # "path": get_mech_path("Mechanisms/Mei (2021)/Mei_mechanism.yaml", r"D:\4. python code\Cantera\Mechanisms\Mei (2021)\Mei_mechanism.yaml"),
-        "path": "Mei_mechanism.yaml",
-        "desc": """
-        - **NH3-H2-N2 (cracking)** (species: 40, reactions: 257)
-        - Pressure: **High(~10 bar)**
-        - Equivalence ratio: 0.7~1.4
-        """
-    },
-
-    "Stagni(2023)": {
-        # "path": get_mech_path("Mechanisms/Stagni(2023)/Stagni(2023).yaml", r"D:\4. python code\Cantera\Mechanisms\Stagni(2023)\Stagni(2023).yaml"),
-        "path": "Stagni(2023).yaml",
-        "desc": """
-        - **NH3-H2** (species: 29, reactions: 203)
-        - Temperature: **High**
-        - ****
-        """
-    },
-
-    "Nakamura(2017)": {
-        # "path": get_mech_path("Mechanisms/Nakamura(2017)/Nakamura(2017).yaml", r"D:\4. python code\Cantera\Mechanisms\Nakamura(2017)\Nakamura(2017).yaml"),
-        "path": "Nakamura(2017).yaml",
-        "desc": """
-        - **NH3** (species: 38, reactions: 232)
-        - Pressure: **Ambient**
-        - Temperature: **low**
-        - Equivalence ratio: 0.8~1.2
-        """
-    },
-
-    "Zhang(2021)": {
-        # "path": get_mech_path("Mechanisms/Zhang(2021)/Zhang(2021).yaml", r"D:\4. python code\Cantera\Mechanisms\Zhang(2021)\Zhang(2021).yaml"),
-        "path": "Zhang(2021).yaml",
-        "desc": """
-        - **NH3** (species: 38, reactions: 263)
-        - Pressure: **Ambient**
-        - Temperature: **low~high**
-        - Equivalence ratio: 0.25~1.00
-        """
-    }
-
-    }
-
 # 1. 드롭다운 선택창
 selected_mech_name = st.sidebar.selectbox("Mechanism", list(mech_database.keys()))
 
@@ -262,9 +179,11 @@ if st.button("Calculation", type="primary"):
             x_temperature = []
             x_NOx = []
             x_NH3 = []
+            x_tau = []
 
             x_length.append(length_psr1)
             x_temperature.append(psr1.phase.T)
+            x_tau.append(tau_psr1)
             idx_NO = gas.species_index('NO')
             idx_NO2 = gas.species_index('NO2')
             idx_NH3 = gas.species_index('NH3')
@@ -286,6 +205,7 @@ if st.button("Calculation", type="primary"):
             dx = 0.005
             length_count = 1
             KK = 1
+            tau_pfr1 = tau_psr1
             if x_cur >= pfr1_len:
                 x_cur = 0
                 KK = 0
@@ -295,11 +215,13 @@ if st.button("Calculation", type="primary"):
                 t_cum1 += (dx / v)
                 sim_pfr1.advance(t_cum1)
                 x_cur += dx
+                tau_pfr1 += (dx / v)
 
                 x_length.append(x_cur)
                 x_temperature.append(pfr1.phase.T)
                 x_NOx.append((pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])))
                 x_NH3.append((pfr1.phase.X[idx_NH3])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])))
+                x_tau.append(tau_pfr1)
 
                 length_count=length_count+1
                 
@@ -366,6 +288,7 @@ if st.button("Calculation", type="primary"):
             x_temperature.append(psr2.phase.T)
             x_NOx.append((psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])))
             x_NH3.append((psr2.phase.X[idx_NH3])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])))
+            x_tau.append(tau_pfr1+tau_psr2)
 
             length_count = length_count + 1
 
@@ -378,12 +301,14 @@ if st.button("Calculation", type="primary"):
             
             x_cur2 = x_cur+length_psr2
             t_cum2 = 0.0
+            tau_pfr2 = tau_pfr1+tau_psr2
             if length_psr2 >= pfr2_len:
                 x_cur2 = 0
                 KK = 0
             while length_psr2 < pfr2_len:
                 v2 = mdot_total_2 / (pfr2.phase.density * pfr2_area)
                 t_cum2 += (dx / v2)
+                tau_pfr2 += (dx/v2)
                 sim_pfr2.advance(t_cum2)
                 x_cur2 += dx
                 length_psr2 += dx
@@ -392,6 +317,7 @@ if st.button("Calculation", type="primary"):
                 x_temperature.append(pfr2.phase.T)
                 x_NOx.append((pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])))
                 x_NH3.append((pfr2.phase.X[idx_NH3])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])))
+                x_tau.append(tau_pfr2)
 
                 # length_count=length_count+1
             
@@ -449,6 +375,7 @@ if st.button("Calculation", type="primary"):
                 T_plot_y = [float(y) for y in x_temperature]
                 NOx_plot_y = [float(y) for y in x_NOx]
                 NH3_plot_y = [float(y) for y in x_NH3]
+                tau_plot_y = [float(y)*1000 for y in x_tau]
 
                 linewidth = 1
                 fontsize_label = 8
@@ -542,6 +469,24 @@ if st.button("Calculation", type="primary"):
                         hovermode="x unified",
                         xaxis_title="<b>Combustor Length (m)</b>",
                         yaxis_title="<b>NH3 (ppmvd@15%O2)</b>"
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+                with st.expander("Residence data", expanded=False):
+                    fig = go.Figure()
+                    fig.add_trace(
+                        go.Scatter(
+                            x=plot_x,  # 변환된 데이터 전달
+                            y=tau_plot_y,  # 변환된 데이터 전달
+                            name="Residence time (ms)",
+                            line=dict(color="royalblue", width=3, dash="dash")
+                        )
+                    )
+                    fig.update_layout(
+                        title_text="<b>Axial residence time Profile along Combustor</b>",
+                        hovermode="x unified",
+                        xaxis_title="<b>Combustor Length (m)</b>",
+                        yaxis_title="<b>Residence time (ms) </b>"
                     )
                     st.plotly_chart(fig, use_container_width=True)
 
