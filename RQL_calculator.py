@@ -419,7 +419,7 @@ if st.button("Calculation", type="primary"):
             idx_NO2 = gas.species_index('NO2')
             idx_NH3 = gas.species_index('NH3')
             
-            col1, col7, col2, col3, col4, col5, col6 = st.columns(6)
+            col1, col7, col2, col3, col4, col5, col6 = st.columns(7)
             col1.metric("Exit temperature", f"{pfr2.phase.T:.1f} K")
             col7.metric("Exit temperature", f"{pfr2.phase.T-273.15:.1f} C")
             col2.metric("Primary $\phi$", f"{phi1:.4f}")
