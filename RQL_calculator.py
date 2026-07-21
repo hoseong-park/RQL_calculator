@@ -114,8 +114,8 @@ with st.sidebar.expander("Mechanism explanation"):
 # 1-1. 온도 및 압력
 st.sidebar.subheader("Fuel/air condition")
 T_fuel_raw = st.sidebar.text_input("Fuel temperature (℃)", value="15")
-T_air_raw = st.sidebar.text_input("Air temperature (℃)", value="397")
-P_raw = st.sidebar.text_input("Combustor pressure (Pa)", value="1805850")
+T_air_raw = st.sidebar.text_input("Air temperature (℃)", value="453.552785761")
+P_raw = st.sidebar.text_input("Combustor pressure (Pa)", value="1983838.2237")
 
 # 1-2.燃料 몰분율
 st.sidebar.subheader("Fuel composition (sum = 100)")
@@ -125,9 +125,9 @@ mole_NH3 = st.sidebar.slider("NH3", 0, 100, 100)
 
 # 1-3. 질량 유량
 st.sidebar.subheader("Mass flow rate")
-mdot_fuel_raw = st.sidebar.text_input("Primary fuel (kg/s)", value="0.38949")  # 예시 값 직접 입력
-mdot_air_raw = st.sidebar.text_input("Primary air (kg/s)", value="1.6979")   # 예시 값 직접 입력
-mdot_sec_air_raw = st.sidebar.text_input("Secondary air (kg/s)", value="3.9618")
+mdot_fuel_raw = st.sidebar.text_input("Primary fuel (kg/s)", value="0.384069365166667")  # 예시 값 직접 입력
+mdot_air_raw = st.sidebar.text_input("Primary air (kg/s)", value="1.81484786695")   # 예시 값 직접 입력
+mdot_sec_air_raw = st.sidebar.text_input("Secondary air (kg/s)", value="4.23464502288333")
 
 # 1-4. 반응기 형상 및 내부 온도 조건
 st.sidebar.subheader("Reactor setting")
@@ -151,11 +151,11 @@ psr2_vol_raw = st.sidebar.text_input("(Volume) C-D ($m^3$)", value="0.001")
 # psr2_vol_raw_A = st.sidebar.text_input("(s-auto_initial) Reaction volume ($m^3$)", value="-", disabled=True)
 
 # psr2_vol_raw = st.sidebar.text_input("(s) Reaction volume ($m^3$)", value="0.05")
-pfr1_area_raw = st.sidebar.text_input("(Area) Primary - Combustor cross secion area ($m^2$)", value="0.0314")
-pfr2_area_raw = st.sidebar.text_input("(Area) secondary - Combustor cross secion area ($m^2$)", value="0.0314")
+pfr1_area_raw = st.sidebar.text_input("(Area) Primary - Combustor cross secion area ($m^2$)", value="0.041547562843725")
+pfr2_area_raw = st.sidebar.text_input("(Area) secondary - Combustor cross secion area ($m^2$)", value="0.041547562843725")
 
-pfr1_len_raw = st.sidebar.text_input("(Length) A-C ($m$)", value="0.5")
-pfr2_len_raw = st.sidebar.text_input("(Length) C-E ($m$)", value="0.7")
+pfr1_len_raw = st.sidebar.text_input("(Length) A-C ($m$)", value="0.454")
+pfr2_len_raw = st.sidebar.text_input("(Length) C-E ($m$)", value="0.454")
 
 # %% 2. 메인 화면 - 계산 버튼 및 결과 출력 구역
 if st.button("Calculation", type="primary"):
@@ -419,8 +419,9 @@ if st.button("Calculation", type="primary"):
             idx_NO2 = gas.species_index('NO2')
             idx_NH3 = gas.species_index('NH3')
             
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            col1, col7, col2, col3, col4, col5, col6 = st.columns(6)
             col1.metric("Exit temperature", f"{pfr2.phase.T:.1f} K")
+            col7.metric("Exit temperature", f"{pfr2.phase.T-273.15:.1f} C")
             col2.metric("Primary $\phi$", f"{phi1:.4f}")
             col3.metric("Total $\phi$", f"{phi2:.4f}")
             col4.metric("Residence time", f"{(tau_psr1+tau_psr2+t_cum1+t_cum2)*1e3:.2f} ms")
