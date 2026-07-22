@@ -113,7 +113,7 @@ with st.sidebar.expander("Mechanism explanation"):
 
 # 1-1. 온도 및 압력
 st.sidebar.subheader("Fuel/air condition")
-T_fuel_raw = st.sidebar.text_input("Fuel temperature (℃)", value="15")
+T_fuel_raw = st.sidebar.text_input("Fuel temperature (℃)", value="130")
 T_air_raw = st.sidebar.text_input("Air temperature (℃)", value="453.552785761")
 P_raw = st.sidebar.text_input("Combustor pressure (Pa)", value="1983838.2237")
 
