@@ -514,7 +514,7 @@ if st.button("Calculation", type="primary"):
                     fig.update_layout(
                         title_text="<b>Axial Temperature Profile along Combustor</b>",
                         hovermode="x unified",
-                        xaxis_title="<b>Combustor Length (m)</b>",
+                        xaxis_title="<b>Combustor Length (mm)</b>",
                         yaxis_title="<b>Temperature (K)</b>"
                     )
                     st.plotly_chart(fig, use_container_width=True)
@@ -532,7 +532,7 @@ if st.button("Calculation", type="primary"):
                     fig.update_layout(
                         title_text="<b>Axial NOx Profile along Combustor</b>",
                         hovermode="x unified",
-                        xaxis_title="<b>Combustor Length (m)</b>",
+                        xaxis_title="<b>Combustor Length (mm)</b>",
                         yaxis_title="<b>NOx (ppmvd@15%O2)</b>"
                     )
                     st.plotly_chart(fig, use_container_width=True)
@@ -550,7 +550,7 @@ if st.button("Calculation", type="primary"):
                     fig.update_layout(
                         title_text="<b>Axial NH3 Profile along Combustor</b>",
                         hovermode="x unified",
-                        xaxis_title="<b>Combustor Length (m)</b>",
+                        xaxis_title="<b>Combustor Length (mm)</b>",
                         yaxis_title="<b>NH3 (ppmvd@15%O2)</b>"
                     )
                     st.plotly_chart(fig, use_container_width=True)
@@ -568,7 +568,7 @@ if st.button("Calculation", type="primary"):
                     fig.update_layout(
                         title_text="<b>Axial residence time Profile along Combustor</b>",
                         hovermode="x unified",
-                        xaxis_title="<b>Combustor Length (m)</b>",
+                        xaxis_title="<b>Combustor Length (mm)</b>",
                         yaxis_title="<b>Residence time (ms) </b>"
                     )
                     st.plotly_chart(fig, use_container_width=True)
