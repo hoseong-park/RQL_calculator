@@ -268,11 +268,12 @@ if st.button("Calculation", type="primary"):
             x_tau.append(tau_psr1)
             idx_NO = gas.species_index('NO')
             idx_NO2 = gas.species_index('NO2')
+            idx_N2O = gas.species_index('N2O')
             idx_NH3 = gas.species_index('NH3')
             idx_H2O = gas.species_index('H2O')
             idx_O2 = gas.species_index('O2')
 
-            x_NOx.append((psr1.phase.X[idx_NO]+psr1.phase.X[idx_NO2])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])))
+            x_NOx.append((psr1.phase.X[idx_NO]+psr1.phase.X[idx_NO2]+psr1.phase.X[idx_N2O])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])))
             x_NH3.append((psr1.phase.X[idx_NH3])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])))
 
             # ----------------------------------------------------
@@ -301,7 +302,7 @@ if st.button("Calculation", type="primary"):
 
                 x_length.append(x_cur)
                 x_temperature.append(pfr1.phase.T)
-                x_NOx.append((pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])))
+                x_NOx.append((pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2]+pfr1.phase.X[idx_N2O])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])))
                 x_NH3.append((pfr1.phase.X[idx_NH3])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])))
                 x_tau.append(tau_pfr1)
 
@@ -368,7 +369,7 @@ if st.button("Calculation", type="primary"):
 
             x_length.append(x_cur + length_psr22)
             x_temperature.append(psr2.phase.T)
-            x_NOx.append((psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])))
+            x_NOx.append((psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2]+psr2.phase.X[idx_N2O])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])))
             x_NH3.append((psr2.phase.X[idx_NH3])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])))
             x_tau.append(tau_pfr1+tau_psr2)
 
@@ -397,7 +398,7 @@ if st.button("Calculation", type="primary"):
 
                 x_length.append(x_cur2)
                 x_temperature.append(pfr2.phase.T)
-                x_NOx.append((pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])))
+                x_NOx.append((pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2]+pfr2.phase.X[idx_N2O])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])))
                 x_NH3.append((pfr2.phase.X[idx_NH3])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])))
                 x_tau.append(tau_pfr2)
 
@@ -425,8 +426,8 @@ if st.button("Calculation", type="primary"):
             col2.metric("Primary $\phi$", f"{phi1:.4f}")
             col3.metric("Total $\phi$", f"{phi2:.4f}")
             col4.metric("Residence time", f"{(tau_psr1+tau_psr2+t_cum1+t_cum2)*1e3:.2f} ms")
-            col5.metric("Exit NOx (NO+NO2)", f"{(pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.2f} ppmvd@15%O2")
-            col6.metric("Exit NH3 Slip", f"{pfr2.phase.X[idx_NH3]*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.2f} ppmvd@15%O2")
+            col5.metric("Exit NOx (NO+NO2+N2O)", f"{(pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2]+pfr2.phase.X[idx_N2O])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.2f} ppm")
+            col6.metric("Exit NH3 Slip", f"{pfr2.phase.X[idx_NH3]*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.2f} ppm")
             
             # 표 형태로 상세 데이터 나열
             st.subheader("Data")
@@ -436,10 +437,10 @@ if st.button("Calculation", type="primary"):
                 "length (mm)": [f"(A-B) {length_psr1*1e3:.4f}", f"(A-C) {x_cur*1e3:.4f}", f"(A-D) {(x_cur+length_psr22)*1e3:.4f}", f"(A-E) {x_cur2*1e3:.4f}"],
                 "Residence time (ms)": [f"{tau_psr1*1e3:.2f}", f"{t_cum1*1e3:.2f}", f"{tau_psr2*1e3:.2f}", f"{t_cum2*1e3:.2f}"],
                 "Volume (m^3)": [f"{psr1.volume:.4f}", "-", f"{psr2.volume:.4f}", "-"],                
-                "NOx (ppmvd@15%O2)": [f"{(psr1.phase.X[idx_NO]+psr1.phase.X[idx_NO2])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])):.1f}",
-                              f"{(pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])):.1f}", 
-                              f"{(psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])):.1f}", 
-                              f"{(pfr2.phase.X[idx_NO]+pfr1.phase.X[idx_NO2])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.1f}"],
+                "NOx (ppmvd@15%O2)": [f"{(psr1.phase.X[idx_NO]+psr1.phase.X[idx_NO2]+psr1.phase.X[idx_N2O])*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])):.1f}",
+                              f"{(pfr1.phase.X[idx_NO]+pfr1.phase.X[idx_NO2]+pfr1.phase.X[idx_N2O])*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])):.1f}", 
+                              f"{(psr2.phase.X[idx_NO]+psr2.phase.X[idx_NO2]+psr2.phase.X[idx_N2O])*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])):.1f}", 
+                              f"{(pfr2.phase.X[idx_NO]+pfr2.phase.X[idx_NO2]+pfr2.phase.X[idx_N2O])*1e6/(1-pfr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr2.phase.X[idx_O2])):.1f}"],
                 "NH3 (ppmvd@15%O2)": [f"{psr1.phase.X[idx_NH3]*1e6/(1-psr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr1.phase.X[idx_O2])):.1f}", 
                               f"{pfr1.phase.X[idx_NH3]*1e6/(1-pfr1.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-pfr1.phase.X[idx_O2])):.1f}", 
                               f"{psr2.phase.X[idx_NH3]*1e6/(1-psr2.phase.X[idx_H2O]*(0.21 - 0.15)/(0.21-psr2.phase.X[idx_O2])):.1f}", 
